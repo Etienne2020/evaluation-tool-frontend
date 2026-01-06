@@ -14,6 +14,74 @@
           <PromptEditor @submit="handlePromptSubmit" />
         </section>
 
+        <!-- Prompt Evaluation Form -->
+        <section class="response-section">
+          <div class="eval-field">
+            <label>Source/Seed <span class="required">*</span></label>
+            <textarea
+              v-model="evaluation.source"
+              class="eval-textarea"
+              rows="1"
+              placeholder="Ideal response for this prompt"
+            ></textarea>
+          </div>
+          <div class="eval-field">
+            <label>Academic Level <span class="required">*</span></label>
+            <!--label>Error Type <span class="required">*</span></label-->
+            <select
+              v-model="evaluation.academicLevel"
+              class="eval-select"
+            >
+              <option value="">Select an option</option>
+              <option value="Undergraduate">
+                Undergraduate
+              </option>
+              <option value="Master">
+                Master
+              </option>
+              <option value="Doctoral">
+                Doctoral
+              </option>
+            </select>
+          </div>
+          <div class="eval-field">
+            <label>Solution <span class="required">*</span></label>
+            <textarea
+              v-model="evaluation.solution"
+              class="eval-textarea"
+              rows="10"
+              placeholder="Ideal response for this prompt"
+            ></textarea>
+          </div>
+          <div class="eval-field">
+            <label>Short Answer <span class="required">*</span></label>
+            <textarea
+              v-model="evaluation.shortAnswer"
+              class="eval-textarea"
+              rows="1"
+              placeholder="Ideal response for this prompt"
+            ></textarea>
+          </div>
+          <div class="eval-field">
+            <label>Units <span class="required"></span></label>
+            <textarea
+              v-model="evaluation.units"
+              class="eval-textarea"
+              rows="1"
+              placeholder="Ideal response for this prompt"
+            ></textarea>
+          </div>
+          <div class="eval-field">
+            <label>Category from Taxonomy <span class="required"></span></label>
+            <textarea
+              v-model="evaluation.taxonomyCategory"
+              class="eval-textarea"
+              rows="1"
+              placeholder="Category from Taxonomy"
+            ></textarea>
+          </div>
+        </section>
+
         <!-- Response Section -->
         <section v-if="isLoading" class="response-section">
           <p class="loading-text">Generating response...</p>
@@ -25,72 +93,24 @@
           </header>
           <div class="response-text">{{ response.text }}</div>
 
-          <!-- Evaluation Form -->
+          <!-- Model Evaluation Form -->
           <form class="evaluation-form" @submit.prevent>
             <div class="eval-header">
               <h3 class="eval-title">Response Evaluation</h3>
               <button type="button" class="eval-toggle" @click="evalFormExpanded = !evalFormExpanded">
                 <span class="eval-toggle-icon">{{ evalFormExpanded ? '▼' : '▶' }}</span>
-                Evaluation Form – {{ evalFormStatus }}
-              </button>
+                Evaluation Form
+              </button> <!-- Evaluation Form – {{ evalFormStatus }} -->
             </div>
 
             <div v-show="evalFormExpanded" class="eval-content">
-              <!-- Scores with Star Ratings -->
-              <template v-for="(config, key) in scoreConfigs" :key="key">
-                <div class="eval-score-block">
-                  <label class="score-label">{{ config.label }} <span class="required">*</span></label>
-                  <p class="score-description">{{ config.description }}</p>
-                  
-                  <!-- Star Rating -->
-                  <div class="star-rating" @mouseleave="hoverRatings[key] = null">
-                    <div 
-                      v-for="star in 5" 
-                      :key="star" 
-                      class="star-container"
-                    >
-                      <!-- Background (empty) star -->
-                      <span class="star star-empty">★</span>
-                      <!-- Half star fill -->
-                      <span 
-                        class="star star-half-fill"
-                        :class="{ 'visible': getStarFill(key, star) >= 0.5 }"
-                      >★</span>
-                      <!-- Full star fill -->
-                      <span 
-                        class="star star-full-fill"
-                        :class="{ 'visible': getStarFill(key, star) >= 1 }"
-                      >★</span>
-                      <!-- Click zones -->
-                      <span 
-                        class="star-click-zone star-click-left"
-                        @click="setRating(key, star - 0.5)"
-                        @mouseenter="hoverRatings[key] = star - 0.5"
-                      ></span>
-                      <span 
-                        class="star-click-zone star-click-right"
-                        @click="setRating(key, star)"
-                        @mouseenter="hoverRatings[key] = star"
-                      ></span>
-                    </div>
-                    <span class="rating-value">{{ evaluation.scores[key] || 0 }}</span>
-                  </div>
+              
 
-                  <label class="rationale-label">Rationale for {{ config.label }} <span class="required">*</span></label>
-                  <textarea
-                    v-model="evaluation.rationales[key]"
-                    class="eval-textarea"
-                    rows="3"
-                    placeholder="Your review"
-                  ></textarea>
-                </div>
-              </template>
-
-              <!-- Failure Section -->
+              <!-- Failure Section -> Response Evaluation Section -->
               <div class="eval-section failure-section">
                 <h4 class="eval-section-title">Failure Analysis</h4>
 
-                <div class="eval-field">
+                <!--div class="eval-field">
                   <label>Failure Reason <span class="required">*</span></label>
                   <textarea
                     v-model="evaluation.failure.failureReason"
@@ -98,21 +118,21 @@
                     rows="3"
                     placeholder="Describe the primary reason for failure..."
                   ></textarea>
-                </div>
+                </div-->
 
                 <div class="eval-field">
-                  <label>Hallucinations <span class="required">*</span></label>
+                  <label>Result <span class="required">*</span></label>
                   <select
-                    v-model="evaluation.failure.hallucinations"
+                    v-model="evaluation.passOrFail"
                     class="eval-select"
                   >
                     <option value="">Select an option</option>
-                    <option value="True">True</option>
-                    <option value="False">False</option>
+                    <option value="Pass">Pass</option>
+                    <option value="Fail">Fail</option>
                   </select>
                 </div>
 
-                <div
+                <!--div
                   v-if="evaluation.failure.hallucinations === 'True'"
                   class="eval-field"
                 >
@@ -275,15 +295,23 @@
                       placeholder="Describe the code error or bug..."
                     ></textarea>
                   </div>
-                </div>
+                </div  -->
               </div>
             </div>
           </form>
         </section>
 
-        <section v-else-if="error" class="response-section">
+        <!--section v-else-if="error" class="response-section">
           <p class="error-text">{{ error }}</p>
-        </section>
+        </section-->
+        <button
+          type="button"
+          class="prompt-submit-button"
+          @click="onSubmit"
+        >
+          Save Evaluation
+        </button>
+
       </article>
     </section>
   </main>
@@ -307,116 +335,73 @@ const isLoading = ref(false);
 const error = ref(null);
 const evalFormExpanded = ref(true);
 
-const scoreConfigs = {
-  accuracy: {
-    label: 'Accuracy',
-    description: 'Assess whether the code or response is accurate and performs as expected. This involves successfully passing all relevant test cases.',
-  },
-  efficiency: {
-    label: 'Efficiency',
-    description: 'Assess the performance and optimization of the response or code. This involves evaluating time and space complexity and ensuring optimal resource usage.',
-  },
-  codeQuality: {
-    label: 'Code Quality',
-    description: 'Evaluate code efficiency, ensuring optimal use of resources like CPU and memory. Assess exception handling for robust error management.',
-  },
-  presentation: {
-    label: 'Presentation',
-    description: 'Evaluate the clarity, organization, and readability of the response including formatting and structure.',
-  },
-  instructionFollowing: {
-    label: 'Instruction Following',
-    description: 'Assess how well the response follows the given instructions and requirements.',
-  },
-  exceptionHandling: {
-    label: 'Exception Handling',
-    description: 'Evaluate the robustness of error handling and edge case management in the code.',
-  },
-  overall: {
-    label: 'Overall',
-    description: 'Provide an overall assessment of the response quality considering all dimensions.',
-  },
-};
+//const passOrFail = ''
+
 
 const createEmptyEvaluation = () => ({
-  scores: {
-    accuracy: 0,
-    efficiency: 0,
-    codeQuality: 0,
-    presentation: 0,
-    instructionFollowing: 0,
-    exceptionHandling: 0,
-    overall: 0,
-  },
-  rationales: {
-    accuracy: '',
-    efficiency: '',
-    codeQuality: '',
-    presentation: '',
-    instructionFollowing: '',
-    exceptionHandling: '',
-    overall: '',
-  },
-  failure: {
-    failureReason: '',
-    hallucinations: '',
-    hallucinationJustification: '',
-    codeError: '',
-    codeErrorType: '',
-    codeErrorDetails: '',
-  },
+  source: '',
+  academicLevel: '',
+  solution: '',
+  shortAnswer: '',
+  units: '',
+  taxonomyCategory: '',
+  passOrFail: ''
 });
 
 const evaluation = ref(createEmptyEvaluation());
-const hoverRatings = reactive({
-  accuracy: null,
-  efficiency: null,
-  codeQuality: null,
-  presentation: null,
-  instructionFollowing: null,
-  exceptionHandling: null,
-  overall: null,
-});
 
-const evalFormStatus = computed(() => {
+/*const evalFormStatus = computed(() => {
   const scores = evaluation.value.scores;
   const hasAnyScore = Object.values(scores).some(v => v > 0);
   return hasAnyScore ? 'IN PROGRESS' : 'PENDING';
-});
+});*/
 
-const setRating = (key, value) => {
+/*const setRating = (key, value) => {
   evaluation.value.scores[key] = value;
 };
 
-const getStarFill = (key, starIndex) => {
+/*const getStarFill = (key, starIndex) => {
   const rating = hoverRatings[key] ?? evaluation.value.scores[key];
   const starValue = rating - (starIndex - 1);
   return Math.max(0, Math.min(1, starValue));
-};
+};*/
 
 const handlePromptSubmit = async (promptText) => {
   currentPrompt.value = promptText;
   response.value = null;
   error.value = null;
   evaluation.value = createEmptyEvaluation();
-  Object.keys(hoverRatings).forEach(key => hoverRatings[key] = null);
+  //Object.keys(hoverRatings).forEach(key => hoverRatings[key] = null);
 
   if (!promptText) return;
 
   isLoading.value = true;
 
+  //TODO
+  const API_URL = import.meta.env.VITE_API_URL
+  //let selectedModel = 'deepseek-r1-0528'
+  let selectedModel = 'o3'
+  console.log(API_URL);
   try {
-    const res = await fetch('/api/v1/generate', {
+    const res = await fetch(`${API_URL}/api/v1/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: promptText }),
+      body: JSON.stringify({ 
+      prompt: promptText,
+      model: selectedModel
+      }),
     });
+    //console.log(res)
+    console.log(res.ok)
+    //let t = await res.text()
+    //console.log(t)
 
     if (!res.ok) {
       throw new Error(`Request failed: ${res.status}`);
     }
 
     const data = await res.json();
+    console.log(data)
     response.value = { model: data.model, text: data.text };
   } catch (err) {
     error.value = err.message || 'Failed to generate response';
@@ -424,6 +409,13 @@ const handlePromptSubmit = async (promptText) => {
     isLoading.value = false;
   }
 };
+
+const onSubmit = () => {
+  console.log('TODO')
+  //const value = localPrompt.value.trim();
+  //emit('submit', value);
+};
+
 </script>
 
 <style scoped>
@@ -735,4 +727,44 @@ const handlePromptSubmit = async (promptText) => {
   min-height: 70px;
   font-family: inherit;
 }
+
+
+/* ----- copied-pasted: ----- */
+.prompt-submit-button {
+  align-self: flex-end;
+  padding: 0.45rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(56, 189, 248, 0.9);
+  background: radial-gradient(circle at top left, #0f172a, #0369a1);
+  color: #e0f2fe;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 0.15s ease-out,
+    transform 0.12s ease-out,
+    box-shadow 0.12s ease-out,
+    border-color 0.12s ease-out;
+  box-shadow:
+    0 10px 25px rgba(15, 23, 42, 0.9),
+    0 0 0 1px rgba(15, 23, 42, 0.9);
+}
+
+.prompt-submit-button:hover {
+  background: radial-gradient(circle at top left, #0b1120, #0284c7);
+  transform: translateY(-1px);
+  box-shadow:
+    0 14px 32px rgba(15, 23, 42, 0.95),
+    0 0 0 1px rgba(15, 23, 42, 0.9);
+}
+
+.prompt-submit-button:active {
+  transform: translateY(0);
+  box-shadow:
+    0 6px 14px rgba(15, 23, 42, 0.9),
+    0 0 0 1px rgba(15, 23, 42, 0.9);
+}
+
 </style>
